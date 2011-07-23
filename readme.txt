@@ -22,7 +22,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
+
+
 Changelist:
+
+Started new github project at http://github.com/dinocore1/Android-Horizontal-ListView
 
 v1.5:
 adapter.notifyDataSetChanged() now saves position in list instead of starting at begining
