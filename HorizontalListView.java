@@ -99,6 +99,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			synchronized(HorizontalListView.this){
 				mDataChanged = true;
 			}
+			setEmptyView(getEmptyView());
 			invalidate();
 			requestLayout();
 		}
