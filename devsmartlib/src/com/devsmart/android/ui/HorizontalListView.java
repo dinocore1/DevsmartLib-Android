@@ -57,7 +57,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	private Queue<View> mRemovedViewQueue = new LinkedList<View>();
 	private OnItemSelectedListener mOnItemSelected;
 	private OnItemClickListener mOnItemClicked;
-	private OnItemLongClickListener mOnItemLongClicked;
 	private boolean mDataChanged = false;
 	
 
@@ -87,11 +86,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		mOnItemClicked = listener;
 	}
 	
-	@Override
-	public void setOnItemLongClickListener(AdapterView.OnItemLongClickListener listener) {
-		mOnItemLongClicked = listener;
-	}
-
 	private DataSetObserver mDataObserver = new DataSetObserver() {
 
 		@Override
@@ -291,7 +285,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		boolean handled = mGesture.onTouchEvent(ev);
+		boolean handled = super.dispatchTouchEvent(ev);
+		handled |= mGesture.onTouchEvent(ev);
 		return handled;
 	}
 	
@@ -359,27 +354,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			return true;
 		}
 		
-		@Override
-		public void onLongPress(MotionEvent e) {
-			Rect viewRect = new Rect();
-			int childCount = getChildCount();
-			for (int i = 0; i < childCount; i++) {
-				View child = getChildAt(i);
-				int left = child.getLeft();
-				int right = child.getRight();
-				int top = child.getTop();
-				int bottom = child.getBottom();
-				viewRect.set(left, top, right, bottom);
-				if (viewRect.contains((int) e.getX(), (int) e.getY())) {
-					if (mOnItemLongClicked != null) {
-						mOnItemLongClicked.onItemLongClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
-					}
-					break;
-				}
-
-			}
-		}
-
+		
+		
 	};
 
 	

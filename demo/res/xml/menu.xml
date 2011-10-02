@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  
+  <Preference 
+  	android:key="horizontallistview"
+  	android:title="HorizontalListView Demo"/>
+  	
+  <Preference 
+  	android:key="equalspace"
+  	android:title="EqualSpaceLayout Demo"/>
+  	
+  <Preference 
+  	android:key="equalspace2"
+  	android:title="EqualSpaceLayout Demo2"/>
+    
+</PreferenceScreen>

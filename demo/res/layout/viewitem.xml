@@ -22,5 +22,13 @@
   	android:textColor="#000"
   	android:gravity="center_horizontal"
   	/>
+  	
+  	<Button 
+  	android:id="@+id/clickbutton"
+  	android:layout_width="fill_parent"
+  	android:layout_height="wrap_content"
+  	android:textColor="#000"
+  	android:text="Click Me"
+  	/>
   
 </LinearLayout>
