@@ -7,7 +7,7 @@
   android:background="#fff"
   >
   
-  <com.devsmart.android.ui.HorizontialListView
+  <com.devsmart.android.ui.HorizontalListView
   	android:id="@+id/listview"
   	android:layout_width="fill_parent"
   	android:layout_height="wrap_content"
