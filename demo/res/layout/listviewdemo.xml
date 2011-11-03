@@ -7,11 +7,24 @@
   android:background="#fff"
   >
   
+  <View 
+      android:layout_width="fill_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:background="#88ff0000" /> 
+      
+    
   <com.devsmart.android.ui.HorizontalListView
   	android:id="@+id/listview"
   	android:layout_width="fill_parent"
   	android:layout_height="wrap_content"
   	android:background="#ddd"
   />
+  
+  <View 
+      android:layout_width="fill_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:background="#88ff0000" />
   
 </LinearLayout>

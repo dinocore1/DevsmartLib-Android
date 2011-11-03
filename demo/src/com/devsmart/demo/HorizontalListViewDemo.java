@@ -46,12 +46,12 @@ public class HorizontalListViewDemo extends Activity {
 
 		@Override
 		public int getCount() {
-			return dataObjects.length;
+			return dataObjects.length * 10;
 		}
 
 		@Override
-		public Object getItem(int position) {
-			return null;
+		public String getItem(int position) {
+			return dataObjects[position % dataObjects.length];
 		}
 
 		@Override
@@ -65,7 +65,7 @@ public class HorizontalListViewDemo extends Activity {
 			TextView title = (TextView) retval.findViewById(R.id.title);
 			Button button = (Button) retval.findViewById(R.id.clickbutton);
 			button.setOnClickListener(mOnButtonClicked);
-			title.setText(dataObjects[position]);
+			title.setText(getItem(position));
 			
 			return retval;
 		}
