@@ -338,15 +338,9 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 
 		@Override
 		public boolean onSingleTapConfirmed(MotionEvent e) {
-			Rect viewRect = new Rect();
 			for(int i=0;i<getChildCount();i++){
 				View child = getChildAt(i);
-				int left = child.getLeft();
-				int right = child.getRight();
-				int top = child.getTop();
-				int bottom = child.getBottom();
-				viewRect.set(left, top, right, bottom);
-				if(viewRect.contains((int)e.getX(), (int)e.getY())){
+				if (isEventWithinView(e, child)) {
 					if(mOnItemClicked != null){
 						mOnItemClicked.onItemClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId( mLeftViewIndex + 1 + i ));
 					}
@@ -362,16 +356,10 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		
 		@Override
 		public void onLongPress(MotionEvent e) {
-			Rect viewRect = new Rect();
 			int childCount = getChildCount();
 			for (int i = 0; i < childCount; i++) {
 				View child = getChildAt(i);
-				int left = child.getLeft();
-				int right = child.getRight();
-				int top = child.getTop();
-				int bottom = child.getBottom();
-				viewRect.set(left, top, right, bottom);
-				if (viewRect.contains((int) e.getX(), (int) e.getY())) {
+				if (isEventWithinView(e, child)) {
 					if (mOnItemLongClicked != null) {
 						mOnItemLongClicked.onItemLongClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
 					}
@@ -381,6 +369,17 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			}
 		}
 
+		private boolean isEventWithinView(MotionEvent e, View child) {
+            Rect viewRect = new Rect();
+            int[] childPosition = new int[2];
+            child.getLocationOnScreen(childPosition);
+            int left = childPosition[0];
+            int right = left + child.getWidth();
+            int top = childPosition[1];
+            int bottom = top + child.getHeight();
+            viewRect.set(left, top, right, bottom);
+            return viewRect.contains((int) e.getRawX(), (int) e.getRawY());
+        }
 	};
 
 	
