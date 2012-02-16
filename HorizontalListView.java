@@ -328,6 +328,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		public boolean onScroll(MotionEvent e1, MotionEvent e2,
 				float distanceX, float distanceY) {
 			
+			getParent().requestDisallowInterceptTouchEvent(true);
+
 			synchronized(HorizontalListView.this){
 				mNextX += (int)distanceX;
 			}
