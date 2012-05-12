@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.devsmart.android.ui.HorizontialListView;
+import com.devsmart.android.ui.HorizontalListView;
 
 public class HorizontalListViewDemo extends Activity {
 
@@ -18,7 +18,7 @@ public class HorizontalListViewDemo extends Activity {
 		
 		setContentView(R.layout.listviewdemo);
 		
-		HorizontialListView listview = (HorizontialListView) findViewById(R.id.listview);
+		HorizontalListView listview = (HorizontalListView) findViewById(R.id.listview);
 		listview.setAdapter(mAdapter);
 		
 	}
