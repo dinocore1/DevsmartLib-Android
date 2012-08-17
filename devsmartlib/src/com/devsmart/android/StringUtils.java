@@ -14,7 +14,6 @@ import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.method.MovementMethod;
 import android.text.style.ClickableSpan;
-import android.view.View;
 import android.widget.TextView;
 
 public class StringUtils {

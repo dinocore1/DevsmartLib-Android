@@ -61,22 +61,22 @@ public class IOUtils {
 		in.close();
 	}
 
-	public static abstract class BackgroundTask implements Runnable{
+	public static abstract class BackgroundTask implements Runnable {
 		public Handler mHandler = new Handler();
 		
-		private Runnable mOnFinished = new Runnable() {
-			@Override
-			public void run() {
-				onFinished();
-			}
-		};
-		
+		public abstract void doInBackground();
 		public void onFinished() {
-			//default do nothing
+			
 		}
 		
-		public final void finish() {
-			mHandler.post(mOnFinished);
+		public final void run() {
+			doInBackground();
+			mHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					onFinished();
+				}
+			});
 		}
 
 	}

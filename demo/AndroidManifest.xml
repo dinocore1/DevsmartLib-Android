@@ -17,6 +17,8 @@
         <activity android:name=".HorizontalListViewDemo" />
         <activity android:name=".EqualSpaceLayoutDemo" />
         <activity android:name=".EqualSpaceLayoutDemo2" />
+        
+        <activity android:name="com.devsmart.android.activity.FragmentShellActivity" />
 
     </application>
 </manifest>

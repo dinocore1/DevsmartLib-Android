@@ -2,6 +2,9 @@ package com.devsmart.demo;
 
 
 
+import com.devsmart.android.activity.FragmentShellActivity;
+import com.devsmart.demo.fragment.DemoFragment;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -20,6 +23,15 @@ public class DemoActivity extends PreferenceActivity {
         setupOnClick(findPreference("equalspace"), new Intent(this, EqualSpaceLayoutDemo.class));
         setupOnClick(findPreference("equalspace2"), new Intent(this, EqualSpaceLayoutDemo2.class));
         
+        findPreference("fragmentshell").setOnPreferenceClickListener(new OnPreferenceClickListener() {
+			
+			@Override
+			public boolean onPreferenceClick(Preference preference) {
+				Intent i = FragmentShellActivity.createIntent(getApplicationContext(), DemoFragment.class, null);
+				startActivity(i);
+				return true;
+			}
+		});
     }
     
     private void setupOnClick(Preference pref, final Intent intent) {
