@@ -6,6 +6,7 @@ import java.util.Queue;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,7 +31,6 @@ public class IteratorListView extends ViewGroup {
 	private boolean mIsFingerDown;
 	private int mTopItem = 0;
 	private int mBottomItem = 0;
-	private int mCurrentItem = 0;
 	private ListIterator<?> mIterator;
 	private ViewAdapter<Object> mAdapter;
 
@@ -59,7 +59,6 @@ public class IteratorListView extends ViewGroup {
 		}
 		mTopItem = 0;
 		mBottomItem = -1;
-		mCurrentItem = -1;
 		removeAllViews();
 	}
 	
@@ -79,6 +78,8 @@ public class IteratorListView extends ViewGroup {
 			mLastY = 0;
 			mScroller.fling(0, mdY, 0, Math.round(velocityY), 0, 0, -maxScrollDistance, maxScrollDistance);
 			requestLayout();
+			
+			
 			return true;
 		}
 
@@ -89,6 +90,18 @@ public class IteratorListView extends ViewGroup {
 			return true;
 
 		}
+
+		@Override
+		public boolean onSingleTapConfirmed(MotionEvent e) {
+			return super.onSingleTapConfirmed(e);
+		}
+
+		@Override
+		public boolean onSingleTapUp(MotionEvent e) {
+			return super.onSingleTapUp(e);
+		}
+		
+		
 
 	};
 	
@@ -131,6 +144,8 @@ public class IteratorListView extends ViewGroup {
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 
+		Log.d(IteratorListView.class.getName(), String.format("t:%d b:%d", mTopItem, mBottomItem));
+		
 		if(mAdapter == null){
 			return;
 		}
@@ -143,9 +158,10 @@ public class IteratorListView extends ViewGroup {
 
 		mYOffset += mdY;
 
-		removeNonVisibleItems();
 		fillDown();
 		fillUp();
+		removeNonVisibleItems();
+		
 		positionItems();
 
 		mdY = 0;
@@ -178,7 +194,7 @@ public class IteratorListView extends ViewGroup {
 
 		//remove from top
 		while(child != null && child.getBottom() + mdY < 0){
-			removeViewInLayout(child);
+			removeViewsInLayout(0, 1);
 			mRemovedViewQueue.offer(child);
 			mYOffset += child.getMeasuredHeight();
 			child = getChildAt(0);
@@ -188,7 +204,7 @@ public class IteratorListView extends ViewGroup {
 		//remove from bottom
 		child = getChildAt(getChildCount()-1);
 		while(child != null && child.getTop() + mdY > height){
-			removeViewInLayout(child);
+			removeViewsInLayout(getChildCount()-1, 1);
 			mRemovedViewQueue.offer(child);
 			child = getChildAt(getChildCount()-1);
 			mBottomItem--;
@@ -211,6 +227,16 @@ public class IteratorListView extends ViewGroup {
 		return child;
 	}
 	
+	private void seekTo(int index){
+		while(mIterator.nextIndex() <= index && mIterator.hasNext()){
+			mIterator.next();
+		}
+		
+		while(mIterator.previousIndex() >= index && mIterator.hasPrevious()){
+			mIterator.previous();
+		}
+	}
+	
 	private void fillDown() {
 
 		if(mAdapter == null){
@@ -224,17 +250,19 @@ public class IteratorListView extends ViewGroup {
 			bottomOfLastChild = getChildAt(getChildCount()-1).getBottom();
 		}
 
-		while(bottomOfLastChild + mdY < windowHeight && mIterator.hasNext()) {
+		while(bottomOfLastChild + mdY < windowHeight) {
 			
-			Object obj = mIterator.next();
-			mCurrentItem++;
-			
-			if(mCurrentItem > mBottomItem){
-				View child = getView(obj);
+			seekTo(mBottomItem);
+			if(mIterator.hasNext()){
+				View child = getView(mIterator.next());
 				addAndMeasureChild(child, -1);
 				bottomOfLastChild += child.getMeasuredHeight();
-				mBottomItem = mCurrentItem;
+				mBottomItem++;
+			} else {
+				break;
 			}
+			
+			
 		}
 	}
 
@@ -249,18 +277,20 @@ public class IteratorListView extends ViewGroup {
 			topOfFirstChild = getChildAt(0).getTop();
 		}
 
-		while(topOfFirstChild + mdY > 0 && mIterator.hasPrevious()) {
+		while(topOfFirstChild + mdY > 0) {
 			
-			Object obj = mIterator.previous();
-			mCurrentItem--;
-			
-			if(mCurrentItem < mTopItem){
-				View child = getView(obj);
+			seekTo(mTopItem);
+			if(mIterator.hasPrevious()){
+				View child = getView(mIterator.previous());
 				addAndMeasureChild(child, 0);
 				topOfFirstChild -= child.getMeasuredHeight();
 				mYOffset -= child.getMeasuredHeight();
-				mTopItem = mCurrentItem;
+				mTopItem--;
+			} else {
+				break;
 			}
+			
+			
 		}
 	}
 
