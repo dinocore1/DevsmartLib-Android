@@ -5,6 +5,7 @@ import java.util.ListIterator;
 import java.util.Queue;
 
 import android.content.Context;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -15,9 +16,13 @@ import android.widget.Scroller;
 
 public class IteratorListView extends ViewGroup {
 	
-	public interface ViewAdapter<T extends Object> {
+	public static abstract class ViewAdapter<T extends Object> {
 
-		View getView(T obj, View poll, IteratorListView iteratorListView);
+		abstract public View getView(T obj, View poll, IteratorListView iteratorListView);
+		
+		public void onTap(View view, int x, int y) {}
+		public void onLongPress(View view, int x, int y) {}
+		public void onDoubleTap(View view, int x, int y) {}
 		
 	}
 	
@@ -93,12 +98,53 @@ public class IteratorListView extends ViewGroup {
 
 		@Override
 		public boolean onSingleTapConfirmed(MotionEvent e) {
+			if(mAdapter != null){
+				RectF r = new RectF();
+				for(int i=0;i<getChildCount();i++){
+					View child = getChildAt(i);
+					r.set(child.getLeft(), child.getTop(), child.getRight(), child.getBottom());
+					if(r.contains(e.getX(), e.getY())){
+						mAdapter.onTap(child, Math.round(e.getX() - child.getLeft()), Math.round(e.getY() - child.getTop()));
+					}
+				}
+			}
+			
 			return super.onSingleTapConfirmed(e);
 		}
 
 		@Override
 		public boolean onSingleTapUp(MotionEvent e) {
 			return super.onSingleTapUp(e);
+		}
+
+		@Override
+		public boolean onDoubleTap(MotionEvent e) {
+			if(mAdapter != null){
+				RectF r = new RectF();
+				for(int i=0;i<getChildCount();i++){
+					View child = getChildAt(i);
+					r.set(child.getLeft(), child.getTop(), child.getRight(), child.getBottom());
+					if(r.contains(e.getX(), e.getY())){
+						mAdapter.onDoubleTap(child, Math.round(e.getX() - child.getLeft()), Math.round(e.getY() - child.getTop()));
+					}
+				}
+			}
+			return super.onDoubleTap(e);
+		}
+
+		@Override
+		public void onLongPress(MotionEvent e) {
+			if(mAdapter != null){
+				RectF r = new RectF();
+				for(int i=0;i<getChildCount();i++){
+					View child = getChildAt(i);
+					r.set(child.getLeft(), child.getTop(), child.getRight(), child.getBottom());
+					if(r.contains(e.getX(), e.getY())){
+						mAdapter.onLongPress(child, Math.round(e.getX() - child.getLeft()), Math.round(e.getY() - child.getTop()));
+					}
+				}
+			}
+			super.onLongPress(e);
 		}
 		
 		
