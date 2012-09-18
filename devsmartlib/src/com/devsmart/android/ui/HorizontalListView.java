@@ -34,6 +34,7 @@ import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
@@ -58,6 +59,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	private OnItemSelectedListener mOnItemSelected;
 	private OnItemClickListener mOnItemClicked;
 	private OnItemLongClickListener mOnItemLongClicked;
+	private OnListEdgeReachedListener mOnEdgeReached;
 	private boolean mDataChanged = false;
 	
 
@@ -111,6 +113,14 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		}
 		
 	};
+
+	public OnListEdgeReachedListener getOnListEdgeReachedListener() {
+		return mOnEdgeReached;
+	}
+
+	public void setOnListEdgeReachedListener(OnListEdgeReachedListener mOnReachEdgeListener) {
+		this.mOnEdgeReached = mOnReachEdgeListener;
+	}
 
 	@Override
 	public ListAdapter getAdapter() {
@@ -302,13 +312,31 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
 		}
 		requestLayout();
-		
+		if(mNextX <= 0 && mOnEdgeReached!= null){
+			mOnEdgeReached.onListEdgeReached(0);
+		}
+		if(mNextX >= mMaxX && mOnEdgeReached != null) {
+			mOnEdgeReached.onListEdgeReached(0);
+		}		
 		return true;
 	}
 	
 	protected boolean onDown(MotionEvent e) {
 		mScroller.forceFinished(true);
 		return true;
+	}
+	
+	/**
+	 * Interface for client classes interested on listening the event of the list reaching an edge when
+	 * scrolling.
+	 */
+	public interface OnListEdgeReachedListener{
+		/**
+		 * Called then the list has been scrolled to an edge of it. It's to say, it has been
+		 * scrolled to the right most position (last item) or left most position (first item).
+		 * @param edge '0' if the list has reached the left most edge (first item) or '1' if the right most edge (last item)
+		 */
+		public void onListEdgeReached(int edge);
 	}
 	
 	private OnGestureListener mOnGesture = new GestureDetector.SimpleOnGestureListener() {
