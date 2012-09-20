@@ -18,6 +18,21 @@ import android.widget.TextView;
 
 public class StringUtils {
 	
+	public static String hexEncode(byte buf[]) throws IOException{
+		return hexEncode(buf, new StringBuilder(2 * buf.length)).toString();
+	}
+	
+	public static Appendable hexEncode(byte buf[], Appendable sb) throws IOException { 
+		for (byte b : buf) {
+		    sb.append(String.format("%02x", b));
+		}
+		return sb;
+	}
+	
+	public static boolean isEmptyString(String str) {
+		return !(str != null && str.trim().length() > 0);
+	}
+	
 	  public static String loadRawResourceString(Resources res, int resourceId) throws IOException {
 			InputStream is = res.openRawResource(resourceId);
 			return loadString(is);

@@ -82,9 +82,9 @@ public class DbUtils {
 		try {
 			String createSQL = StringUtils.loadAssetString(resources, assetPath);
 			
-			for(String sql : createSQL.split(";")){
+			for(String sql : createSQL.split("\\?")){
 				sql = sql.trim();
-				if(sql.length() > 0){
+				if(!StringUtils.isEmptyString(sql)){
 					db.execSQL(sql);
 				}
 			}
