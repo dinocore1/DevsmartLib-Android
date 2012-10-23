@@ -3,6 +3,7 @@ package com.devsmart.android;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +15,7 @@ import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.method.MovementMethod;
 import android.text.style.ClickableSpan;
+import android.util.Log;
 import android.widget.TextView;
 
 public class StringUtils {
@@ -28,6 +30,18 @@ public class StringUtils {
 	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
 	    }
 	    return new String(hexChars);
+	}
+	
+	public static String sha1hash(String text) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-1");
+			md.update(text.getBytes("UTF-8"), 0, text.length());
+			byte[] sha1hash = md.digest();
+			return bytesToHex(sha1hash);
+		} catch (Exception e) {
+			Log.e(StringUtils.class.getName(), "", e);
+			return null;
+		}
 	}
 	
 	public static boolean isEmptyString(String str) {

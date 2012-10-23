@@ -81,6 +81,30 @@ public class IOUtils {
 
 	}
 	
+	public static abstract class ProgressBackgroundTask extends BackgroundTask {
+		
+		public interface ProgressListener {
+			public void onProgress(ProgressBackgroundTask task, int value, int max, String description);
+		}
+		
+		private ProgressListener mListener;
+
+		public void setProgressListener(ProgressListener listener) {
+			mListener = listener;
+		}
+		
+		public void postProgress(final int value, final int max, final String description) {
+			if(mListener != null){
+				mHandler.post(new Runnable() {
+					@Override
+					public void run() {
+						mListener.onProgress(ProgressBackgroundTask.this, value, max, description);
+					}
+				});
+			}
+		}
+	}
+	
 	public static InputStream getPhoneLogs() throws IOException, InterruptedException {
 		ProcessBuilder builder = new ProcessBuilder("logcat", "-d");
 		builder.redirectErrorStream(true);
