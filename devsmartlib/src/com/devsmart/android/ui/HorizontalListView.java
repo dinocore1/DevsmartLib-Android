@@ -154,6 +154,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		child.measure(MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.AT_MOST),
 				MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.AT_MOST));
 	}
+	
+	
 
 	@Override
 	protected synchronized void onLayout(boolean changed, int left, int top, int right, int bottom) {
@@ -279,7 +281,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 				View child = getChildAt(i);
 				int childWidth = child.getMeasuredWidth();
 				child.layout(left, 0, left + childWidth, child.getMeasuredHeight());
-				left += childWidth;
+				left += childWidth + child.getPaddingRight();
 			}
 		}
 	}

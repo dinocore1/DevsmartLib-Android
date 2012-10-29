@@ -39,19 +39,23 @@ public class Utils {
 		return retval.toString();
 	}
 
-	
-	public static void log(String msg) {
-		StackTraceElement[] st = Thread.currentThread().getStackTrace();
-		StackTraceElement element = Thread.currentThread().getStackTrace()[3];
-		
-		String logMsg = String.format("[%s::%s:%d] %s", 
+	private static String logstr(String msg, StackTraceElement element){
+		return String.format("[%s::%s:%d] %s", 
 				element.getClassName(),
 				element.getMethodName(),
 				element.getLineNumber(),
 				msg
 				);
-		
-		Log.i("", logMsg);
+	}
+	
+	public static void log(String msg) {
+		StackTraceElement element = Thread.currentThread().getStackTrace()[3];
+		Log.i("", logstr(msg, element));
+	}
+	
+	public static void logerror(String msg, Exception e){
+		StackTraceElement element = Thread.currentThread().getStackTrace()[3];
+		Log.e("", logstr(msg, element), e);
 	}
 	
 }

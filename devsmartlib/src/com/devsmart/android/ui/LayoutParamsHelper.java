@@ -9,4 +9,9 @@ public class LayoutParamsHelper {
 		return retval;
 	}
 	
+	public static LayoutParams createFillWrap() {
+		LayoutParams retval = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+		return retval;
+	}
+	
 }
