@@ -201,28 +201,32 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			post(new Runnable() {
 				@Override
 				public void run() {
-					int childCount = getChildCount();
-					for (int i = 0; i < childCount; i++) {
-						View child = getChildAt(i);
-						DownloadType type = (DownloadType) child.getTag();
-						if (type == DownloadType.NONE) {
-							mOnItemUpdateListener.updateFling(HorizontalListView.this, getChildAt(i), mLeftViewIndex + 1 + i,
-									mAdapter.getItemId(mLeftViewIndex + 1 + i));
-							child.setTag(DownloadType.CACHE);
+					if (mOnItemUpdateListener != null) {
+						int childCount = getChildCount();
+						for (int i = 0; i < childCount; i++) {
+							View child = getChildAt(i);
+							DownloadType type = (DownloadType) child.getTag();
+							if (type == DownloadType.NONE) {
+								mOnItemUpdateListener.updateFling(HorizontalListView.this, getChildAt(i), mLeftViewIndex + 1 + i,
+										mAdapter.getItemId(mLeftViewIndex + 1 + i));
+								child.setTag(DownloadType.CACHE);
+							}
 						}
 					}
 					requestLayout();
 				}
 			});
 		} else {
-			int childCount = getChildCount();
-			for (int i = 0; i < childCount; i++) {
-				View child = getChildAt(i);
-				DownloadType type = (DownloadType) child.getTag();
-				if (type != DownloadType.DOWNLOAD) {
-					mOnItemUpdateListener.updateOnStop(HorizontalListView.this, getChildAt(i), mLeftViewIndex + 1 + i,
-							mAdapter.getItemId(mLeftViewIndex + 1 + i));
-					child.setTag(DownloadType.DOWNLOAD);
+			if (mOnItemUpdateListener != null) {
+				int childCount = getChildCount();
+				for (int i = 0; i < childCount; i++) {
+					View child = getChildAt(i);
+					DownloadType type = (DownloadType) child.getTag();
+					if (type != DownloadType.DOWNLOAD) {
+						mOnItemUpdateListener.updateOnStop(HorizontalListView.this, getChildAt(i), mLeftViewIndex + 1 + i,
+								mAdapter.getItemId(mLeftViewIndex + 1 + i));
+						child.setTag(DownloadType.DOWNLOAD);
+					}
 				}
 			}
 		}
