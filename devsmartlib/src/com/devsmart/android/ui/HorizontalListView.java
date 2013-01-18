@@ -30,21 +30,30 @@ package com.devsmart.android.ui;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import android.R.bool;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.SparseArray;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.Scroller;
 
-public class HorizontalListView extends AdapterView<ListAdapter> {
-
+public class HorizontalListView extends AbsListView {
+	private ContextMenuInfo mContextMenuInfo;
 	public boolean mAlwaysOverrideTouch = true;
 	protected ListAdapter mAdapter;
 	private int mLeftViewIndex = -1;
@@ -57,13 +66,25 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	private GestureDetector mGesture;
 	private SparseArray<Queue<View>> mRemovedViewQueue = new SparseArray<Queue<View>>();
 	private OnItemSelectedListener mOnItemSelected;
-	private OnItemClickListener mOnItemClicked;
-	private OnItemLongClickListener mOnItemLongClicked;
+	private OnItemLongClickListener mOnItemLongClickListener;
 	private OnItemUpdateListener mOnItemUpdateListener;
 	private boolean mDataChanged = false;
+	/**
+	 * Acts upon click
+	 */
+	protected PerformClick mPerformClick;
+	/**
+	 * Delayed action for touch mode.
+	 */
+	private Runnable mTouchModeReset;
 
 	private enum DownloadType {
 		CACHE, DOWNLOAD, NONE;
+	}
+
+	public HorizontalListView(Context context) {
+		this(context, null);
+		initView();
 	}
 
 	public HorizontalListView(Context context, AttributeSet attrs) {
@@ -83,18 +104,39 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	}
 
 	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		int parentWidth = MeasureSpec.getSize(widthMeasureSpec);
+		int parentHeight = MeasureSpec.getSize(heightMeasureSpec);
+
+		setMeasuredDimension(MeasureSpec.makeMeasureSpec(parentWidth, MeasureSpec.EXACTLY),
+				MeasureSpec.makeMeasureSpec(parentHeight, MeasureSpec.EXACTLY));
+	}
+
+	public int findMotionRow(int y) {
+		return 0;
+	}
+
+	public void fillGap(boolean down) {
+
+	}
+
+	@Override
+	protected void onDetachedFromWindow() {
+		super.onDetachedFromWindow();
+
+		if (mPerformClick != null) {
+			removeCallbacks(mPerformClick);
+		}
+		if (mTouchModeReset != null) {
+			removeCallbacks(mTouchModeReset);
+			mTouchModeReset = null;
+		}
+	}
+
+	@Override
 	public void setOnItemSelectedListener(AdapterView.OnItemSelectedListener listener) {
 		mOnItemSelected = listener;
-	}
-
-	@Override
-	public void setOnItemClickListener(AdapterView.OnItemClickListener listener) {
-		mOnItemClicked = listener;
-	}
-
-	@Override
-	public void setOnItemLongClickListener(AdapterView.OnItemLongClickListener listener) {
-		mOnItemLongClicked = listener;
 	}
 
 	private DataSetObserver mDataObserver = new DataSetObserver() {
@@ -104,6 +146,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			synchronized (HorizontalListView.this) {
 				mDataChanged = true;
 			}
+			setEmptyView(getEmptyView());
 			invalidate();
 			requestLayout();
 		}
@@ -116,6 +159,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		}
 
 	};
+	protected PerformLongPress mPerformLongPress;
 
 	@Override
 	public ListAdapter getAdapter() {
@@ -150,11 +194,12 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	}
 
 	private void addAndMeasureChild(final View child, int viewPos) {
-		LayoutParams params = child.getLayoutParams();
+		LayoutParams params = (AbsListView.LayoutParams) child.getLayoutParams();
 		if (params == null) {
 			params = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
 		}
 
+		child.setTag(DownloadType.NONE);// update ui
 		addViewInLayout(child, viewPos, params, true);
 		child.measure(MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.AT_MOST));
 	}
@@ -251,7 +296,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 
 	private void fillListRight(int rightEdge, final int dx) {
 		while (rightEdge + dx < getWidth() && mRightViewIndex < mAdapter.getCount()) {
-			pollChildFromCache(mRightViewIndex);
 
 			View child = mAdapter.getView(mRightViewIndex, pollChildFromCache(mRightViewIndex), this);
 			addAndMeasureChild(child, -1);
@@ -271,7 +315,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 
 	private void fillListLeft(int leftEdge, final int dx) {
 		while (leftEdge + dx > 0 && mLeftViewIndex >= 0) {
-
 			View child = mAdapter.getView(mLeftViewIndex, pollChildFromCache(mLeftViewIndex), this);
 			addAndMeasureChild(child, 0);
 			leftEdge -= child.getMeasuredWidth();
@@ -285,7 +328,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		while (child != null && child.getRight() + dx <= 0) {
 			mDisplayOffset += child.getMeasuredWidth();
 			offerChildToCache(mLeftViewIndex + 1, child);
-
 			removeViewInLayout(child);
 			mLeftViewIndex++;
 			child = getChildAt(0);
@@ -295,7 +337,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		child = getChildAt(getChildCount() - 1);
 		while (child != null && child.getLeft() + dx >= getWidth()) {
 			offerChildToCache(mRightViewIndex - 1, child);
-
 			removeViewInLayout(child);
 			mRightViewIndex--;
 			child = getChildAt(getChildCount() - 1);
@@ -345,6 +386,12 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 				int childWidth = child.getMeasuredWidth();
 				child.layout(left, 0, left + childWidth, child.getMeasuredHeight());
 				left += childWidth;
+
+				// if (!mDown) {
+				// if (mFling) {
+				// mOnItemUpdateListener.updateFling(child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
+				// }
+				// }
 			}
 		}
 	}
@@ -355,9 +402,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	}
 
 	@Override
-	public boolean dispatchTouchEvent(MotionEvent ev) {
-		boolean handled = super.dispatchTouchEvent(ev);
-		handled |= mGesture.onTouchEvent(ev);
+	public boolean onTouchEvent(MotionEvent ev) {
+		boolean handled = mGesture.onTouchEvent(ev);
 		return handled;
 	}
 
@@ -393,10 +439,12 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 
 		@Override
 		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+			getParent().requestDisallowInterceptTouchEvent(true);
 
 			synchronized (HorizontalListView.this) {
 				mNextX += (int) distanceX;
 			}
+
 			requestLayout();
 
 			return true;
@@ -404,59 +452,102 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 
 		@Override
 		public boolean onSingleTapConfirmed(MotionEvent e) {
+
+			Rect viewRect = new Rect();
 			for (int i = 0; i < getChildCount(); i++) {
-				View child = getChildAt(i);
-				if (isEventWithinView(e, child)) {
-					if (mOnItemClicked != null) {
-						mOnItemClicked
-								.onItemClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
+				final View child = getChildAt(i);
+				int left = child.getLeft();
+				int right = child.getRight();
+				int top = child.getTop();
+				int bottom = child.getBottom();
+				viewRect.set(left, top, right, bottom);
+				if (viewRect.contains((int) e.getX(), (int) e.getY())) {
+					// TODO add Selector here
+
+					child.setPressed(true);
+					refreshDrawableState();
+					setPressed(true);
+
+					if (mPerformClick == null) {
+						mPerformClick = new PerformClick();
 					}
-					if (mOnItemSelected != null) {
-						mOnItemSelected.onItemSelected(HorizontalListView.this, child, mLeftViewIndex + 1 + i,
-								mAdapter.getItemId(mLeftViewIndex + 1 + i));
+
+					final HorizontalListView.PerformClick performClick = mPerformClick;
+					performClick.mClickMotionPosition = i;
+					performClick.rememberWindowAttachCount();
+
+					if (mTouchModeReset != null) {
+						removeCallbacks(mTouchModeReset);
 					}
+
+					mTouchModeReset = new Runnable() {
+						@Override
+						public void run() {
+							child.setPressed(false);
+							setPressed(false);
+							if (!mDataChanged) {
+								performClick.run();
+							}
+						}
+					};
+					postDelayed(mTouchModeReset, ViewConfiguration.getPressedStateDuration());
+
 					break;
+					// return true;
 				}
 
 			}
-			return true;
+			return false;
 		}
 
 		@Override
 		public void onLongPress(MotionEvent e) {
+			Rect viewRect = new Rect();
 			int childCount = getChildCount();
 			for (int i = 0; i < childCount; i++) {
-				View child = getChildAt(i);
-				if (isEventWithinView(e, child)) {
-					if (mOnItemLongClicked != null) {
-						mOnItemLongClicked.onItemLongClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i,
-								mAdapter.getItemId(mLeftViewIndex + 1 + i));
+				final View child = getChildAt(i);
+				int left = child.getLeft();
+				int right = child.getRight();
+				int top = child.getTop();
+				int bottom = child.getBottom();
+				viewRect.set(left, top, right, bottom);
+				if (viewRect.contains((int) e.getX(), (int) e.getY())) {
+
+					child.setPressed(true);
+					refreshDrawableState();
+					setPressed(true);
+
+					if (mPerformLongPress == null) {
+						mPerformLongPress = new PerformLongPress();
 					}
+
+					final HorizontalListView.PerformLongPress performLongPress = mPerformLongPress;
+					mPerformLongPress.mClickMotionPosition = i;
+					mPerformLongPress.rememberWindowAttachCount();
+
+					if (mTouchModeReset != null) {
+						removeCallbacks(mTouchModeReset);
+					}
+
+					mTouchModeReset = new Runnable() {
+						@Override
+						public void run() {
+							child.setPressed(false);
+							setPressed(false);
+							if (!mDataChanged) {
+								performLongPress.run();
+							}
+						}
+					};
+					postDelayed(mTouchModeReset, ViewConfiguration.getLongPressTimeout());
 					break;
 				}
 
 			}
 		}
 
-		private boolean isEventWithinView(MotionEvent e, View child) {
-			Rect viewRect = new Rect();
-			int[] childPosition = new int[2];
-			child.getLocationOnScreen(childPosition);
-			int left = childPosition[0];
-			int right = left + child.getWidth();
-			int top = childPosition[1];
-			int bottom = top + child.getHeight();
-			viewRect.set(left, top, right, bottom);
-			return viewRect.contains((int) e.getRawX(), (int) e.getRawY());
-		}
 	};
 
-	/**
-	 * Update listener to update certain elements based on stopping (scrolling) / flinging
-	 * 
-	 * @author Duncan Scholtz (duncandee@gmail.com)
-	 * 
-	 */
 	public static abstract class OnItemUpdateListener {
 
 		public abstract void updateOnStop(AdapterView<?> adapterView, View view, int position, long id);
@@ -465,4 +556,95 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 
 	}
 
+	/**
+	 * A base class for Runnables that will check that their view is still attached to the original window as when the Runnable was created.
+	 * 
+	 */
+	private class WindowRunnnable {
+		private int mOriginalAttachCount;
+
+		public void rememberWindowAttachCount() {
+			mOriginalAttachCount = getWindowAttachCount();
+		}
+
+		public boolean sameWindow() {
+			return hasWindowFocus() && getWindowAttachCount() == mOriginalAttachCount;
+		}
+	}
+
+	private class PerformClick extends WindowRunnnable implements Runnable {
+		int mClickMotionPosition;
+
+		public void run() {
+			// The data has changed since we posted this action in the event queue,
+			// bail out before bad things happen
+			if (mDataChanged)
+				return;
+
+			final ListAdapter adapter = mAdapter;
+			final int motionPosition = mClickMotionPosition;
+			if (adapter != null && mAdapter.getCount() > 0 && motionPosition != INVALID_POSITION && motionPosition < adapter.getCount()
+					&& sameWindow()) {
+				final View view = getChildAt(motionPosition);
+				// If there is no view, something bad happened (the view scrolled off the
+				// screen, etc.) and we should cancel the click
+				if (view != null) {
+					performItemClick(view, motionPosition, adapter.getItemId(motionPosition));
+				}
+			}
+		}
+	}
+
+	private class PerformLongPress extends WindowRunnnable implements Runnable {
+		public int mClickMotionPosition;
+
+		public void run() {
+			// The data has changed since we posted this action in the event queue,
+			// bail out before bad things happen
+			if (mDataChanged)
+				return;
+
+			final ListAdapter adapter = mAdapter;
+			final int motionPosition = mClickMotionPosition;
+			if (adapter != null && mAdapter.getCount() > 0 && motionPosition != INVALID_POSITION && motionPosition < adapter.getCount()
+					&& sameWindow()) {
+				final View view = getChildAt(motionPosition);
+				// If there is no view, something bad happened (the view scrolled off the
+				// screen, etc.) and we should cancel the click
+				if (view != null) {
+					performLongPress(view, motionPosition, adapter.getItemId(motionPosition));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Creates the ContextMenuInfo returned from {@link #getContextMenuInfo()}. This methods knows the view, position and ID of the item that received the long press.
+	 * 
+	 * @param view
+	 *            The view that received the long press.
+	 * @param position
+	 *            The position of the item that received the long press.
+	 * @param id
+	 *            The ID of the item that received the long press.
+	 * @return The extra information that should be returned by {@link #getContextMenuInfo()}.
+	 */
+	ContextMenuInfo createContextMenuInfo(View view, int position, long id) {
+		return new AdapterContextMenuInfo(view, position, id);
+	}
+
+	boolean performLongPress(final View child, final int longPressPosition, final long longPressId) {
+		boolean handled = false;
+		if (mOnItemLongClickListener != null) {
+			handled = mOnItemLongClickListener.onItemLongClick(HorizontalListView.this, child, longPressPosition, longPressId);
+		}
+		if (!handled) {
+			mContextMenuInfo = createContextMenuInfo(child, longPressPosition, longPressId);
+			handled = super.showContextMenuForChild(HorizontalListView.this);
+		}
+		if (handled) {
+			performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+		}
+		return handled;
+	}
 }
