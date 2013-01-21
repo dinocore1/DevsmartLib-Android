@@ -61,24 +61,48 @@ public class IOUtils {
 		in.close();
 	}
 
-	public static abstract class BackgroundTask implements Runnable{
+	public static abstract class BackgroundTask implements Runnable {
 		public Handler mHandler = new Handler();
 		
-		private Runnable mOnFinished = new Runnable() {
-			@Override
-			public void run() {
-				onFinished();
-			}
-		};
-		
+		public abstract void doInBackground();
 		public void onFinished() {
-			//default do nothing
+			
 		}
 		
-		public final void finish() {
-			mHandler.post(mOnFinished);
+		public final void run() {
+			doInBackground();
+			mHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					onFinished();
+				}
+			});
 		}
 
+	}
+	
+	public static abstract class ProgressBackgroundTask extends BackgroundTask {
+		
+		public interface ProgressListener {
+			public void onProgress(ProgressBackgroundTask task, int value, int max, String description);
+		}
+		
+		private ProgressListener mListener;
+
+		public void setProgressListener(ProgressListener listener) {
+			mListener = listener;
+		}
+		
+		public void postProgress(final int value, final int max, final String description) {
+			if(mListener != null){
+				mHandler.post(new Runnable() {
+					@Override
+					public void run() {
+						mListener.onProgress(ProgressBackgroundTask.this, value, max, description);
+					}
+				});
+			}
+		}
 	}
 	
 	public static InputStream getPhoneLogs() throws IOException, InterruptedException {

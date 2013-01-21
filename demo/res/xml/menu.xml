@@ -13,5 +13,9 @@
   <Preference 
   	android:key="equalspace2"
   	android:title="EqualSpaceLayout Demo2"/>
+  
+  <Preference 
+      android:key="fragmentshell"
+      android:title="Fragment Shell Demo"/>
     
 </PreferenceScreen>

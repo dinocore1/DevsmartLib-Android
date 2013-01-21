@@ -203,6 +203,8 @@ public class HorizontalListView extends AbsListView {
 		addViewInLayout(child, viewPos, params, true);
 		child.measure(MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.AT_MOST));
 	}
+	
+	
 
 	@Override
 	protected synchronized void onLayout(boolean changed, int left, int top, int right, int bottom) {
@@ -385,13 +387,7 @@ public class HorizontalListView extends AbsListView {
 				View child = getChildAt(i);
 				int childWidth = child.getMeasuredWidth();
 				child.layout(left, 0, left + childWidth, child.getMeasuredHeight());
-				left += childWidth;
-
-				// if (!mDown) {
-				// if (mFling) {
-				// mOnItemUpdateListener.updateFling(child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
-				// }
-				// }
+				left += childWidth + child.getPaddingRight();
 			}
 		}
 	}

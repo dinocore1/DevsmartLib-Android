@@ -3,6 +3,7 @@ package com.devsmart.android;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,10 +15,38 @@ import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.method.MovementMethod;
 import android.text.style.ClickableSpan;
-import android.view.View;
+import android.util.Log;
 import android.widget.TextView;
 
 public class StringUtils {
+	
+	public static String bytesToHex(byte[] bytes) {
+	    final char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	    char[] hexChars = new char[bytes.length * 2];
+	    int v;
+	    for ( int j = 0; j < bytes.length; j++ ) {
+	        v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = hexArray[v >>> 4];
+	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+	    }
+	    return new String(hexChars);
+	}
+	
+	public static String sha1hash(String text) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-1");
+			md.update(text.getBytes("UTF-8"), 0, text.length());
+			byte[] sha1hash = md.digest();
+			return bytesToHex(sha1hash);
+		} catch (Exception e) {
+			Log.e(StringUtils.class.getName(), "", e);
+			return null;
+		}
+	}
+	
+	public static boolean isEmptyString(String str) {
+		return !(str != null && str.trim().length() > 0);
+	}
 	
 	  public static String loadRawResourceString(Resources res, int resourceId) throws IOException {
 			InputStream is = res.openRawResource(resourceId);

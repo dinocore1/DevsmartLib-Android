@@ -1,6 +1,7 @@
 package com.devsmart.android;
 
 import android.database.Cursor;
+import android.util.Log;
 
 public class Utils {
 	
@@ -38,4 +39,23 @@ public class Utils {
 		return retval.toString();
 	}
 
+	private static String logstr(String msg, StackTraceElement element){
+		return String.format("[%s::%s:%d] %s", 
+				element.getClassName(),
+				element.getMethodName(),
+				element.getLineNumber(),
+				msg
+				);
+	}
+	
+	public static void log(String msg) {
+		StackTraceElement element = Thread.currentThread().getStackTrace()[3];
+		Log.i("", logstr(msg, element));
+	}
+	
+	public static void logerror(String msg, Exception e){
+		StackTraceElement element = Thread.currentThread().getStackTrace()[3];
+		Log.e("", logstr(msg, element), e);
+	}
+	
 }
