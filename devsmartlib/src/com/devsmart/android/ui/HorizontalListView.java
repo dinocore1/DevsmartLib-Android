@@ -172,7 +172,6 @@ public class HorizontalListView extends AbsListView {
 		return null;
 	}
 
-	@Override
 	public void setAdapter(ListAdapter adapter) {
 		if (mAdapter != null) {
 			mAdapter.unregisterDataSetObserver(mDataObserver);
@@ -203,8 +202,6 @@ public class HorizontalListView extends AbsListView {
 		addViewInLayout(child, viewPos, params, true);
 		child.measure(MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.AT_MOST));
 	}
-	
-	
 
 	@Override
 	protected synchronized void onLayout(boolean changed, int left, int top, int right, int bottom) {
@@ -581,11 +578,13 @@ public class HorizontalListView extends AbsListView {
 			final int motionPosition = mClickMotionPosition;
 			if (adapter != null && mAdapter.getCount() > 0 && motionPosition != INVALID_POSITION && motionPosition < adapter.getCount()
 					&& sameWindow()) {
+
 				final View view = getChildAt(motionPosition);
 				// If there is no view, something bad happened (the view scrolled off the
 				// screen, etc.) and we should cancel the click
 				if (view != null) {
-					performItemClick(view, motionPosition, adapter.getItemId(motionPosition));
+					int pos = motionPosition + (mLeftViewIndex + 1);
+					performItemClick(view, pos, adapter.getItemId(pos));
 				}
 			}
 		}
@@ -608,7 +607,8 @@ public class HorizontalListView extends AbsListView {
 				// If there is no view, something bad happened (the view scrolled off the
 				// screen, etc.) and we should cancel the click
 				if (view != null) {
-					performLongPress(view, motionPosition, adapter.getItemId(motionPosition));
+					int pos = motionPosition + (mLeftViewIndex + 1);
+					performLongPress(view, pos, adapter.getItemId(pos));
 				}
 			}
 		}
