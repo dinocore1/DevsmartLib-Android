@@ -56,7 +56,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	private GestureDetector mGesture;
 	private Queue<View> mRemovedViewQueue = new LinkedList<View>();
 	private OnItemSelectedListener mOnItemSelected;
-	private OnItemClickListener mOnItemClicked;
 	private OnItemLongClickListener mOnItemLongClicked;
 	private boolean mDataChanged = false;
 
@@ -93,11 +92,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	@Override
 	public void setOnItemSelectedListener(AdapterView.OnItemSelectedListener listener) {
 		mOnItemSelected = listener;
-	}
-
-	@Override
-	public void setOnItemClickListener(AdapterView.OnItemClickListener listener) {
-		mOnItemClicked = listener;
 	}
 
 	@Override
@@ -397,10 +391,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			for (int i = 0; i < getChildCount(); i++) {
 				View child = getChildAt(i);
 				if (isEventWithinView(e, child)) {
-					if (mOnItemClicked != null) {
-						mOnItemClicked
-								.onItemClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
-					}
+					performItemClick(child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
+
 					if (mOnItemSelected != null) {
 						mOnItemSelected.onItemSelected(HorizontalListView.this, child, mLeftViewIndex + 1 + i,
 								mAdapter.getItemId(mLeftViewIndex + 1 + i));
