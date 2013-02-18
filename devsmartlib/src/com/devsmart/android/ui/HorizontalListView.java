@@ -66,7 +66,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		initView();
 	}
 	
-	private synchronized void initView() {
+	private void initView() {
 		mLeftViewIndex = -1;
 		mRightViewIndex = 0;
 		mDisplayOffset = 0;
@@ -92,7 +92,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		mOnItemLongClicked = listener;
 	}
 
-	private DataSetObserver mDataObserver = new DataSetObserver() {
+	private final DataSetObserver mDataObserver = new DataSetObserver() {
 
 		@Override
 		public void onChanged() {
@@ -100,14 +100,12 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 				mDataChanged = true;
 			}
 			invalidate();
-			requestLayout();
 		}
 
 		@Override
 		public void onInvalidated() {
 			reset();
 			invalidate();
-			requestLayout();
 		}
 		
 	};
@@ -133,10 +131,10 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		reset();
 	}
 	
-	private synchronized void reset(){
+	private void reset(){
 		initView();
 		removeAllViewsInLayout();
-        requestLayout();
+		invalidate();
 	}
 
 	@Override
@@ -147,7 +145,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	private void addAndMeasureChild(final View child, int viewPos) {
 		LayoutParams params = child.getLayoutParams();
 		if(params == null) {
-			params = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
+			params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		}
 
 		addViewInLayout(child, viewPos, params, true);
@@ -158,9 +156,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	
 
 	@Override
-	protected synchronized void onLayout(boolean changed, int left, int top, int right, int bottom) {
-		super.onLayout(changed, left, top, right, bottom);
-
+	public void computeScroll() {
 		if(mAdapter == null){
 			return;
 		}
@@ -176,6 +172,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		if(mScroller.computeScrollOffset()){
 			int scrollx = mScroller.getCurrX();
 			mNextX = scrollx;
+			
+			postInvalidate();
 		}
 		
 		if(mNextX <= 0){
@@ -194,17 +192,15 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		positionItems(dx);
 		
 		mCurrentX = mNextX;
-		
-		if(!mScroller.isFinished()){
-			post(new Runnable(){
-				@Override
-				public void run() {
-					requestLayout();
-				}
-			});
-			
-		}
 	}
+
+//	@Override
+//	protected synchronized void onLayout(boolean changed, int left, int top, int right, int bottom) {
+//		super.onLayout(changed, left, top, right, bottom);
+//
+//		
+//		
+//	}
 	
 	private void fillList(final int dx) {
 		int edge = 0;
@@ -286,10 +282,10 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		}
 	}
 	
-	public synchronized void scrollTo(int x) {
-		mScroller.startScroll(mNextX, 0, x - mNextX, 0);
-		requestLayout();
-	}
+//	public void scrollTo(int x) {
+//		mScroller.startScroll(mNextX, 0, x - mNextX, 0);
+//		invalidate();
+//	}
 	
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -303,7 +299,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		synchronized(HorizontalListView.this){
 			mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
 		}
-		requestLayout();
+		invalidate();
 		
 		return true;
 	}
@@ -333,7 +329,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			synchronized(HorizontalListView.this){
 				mNextX += (int)distanceX;
 			}
-			requestLayout();
+			invalidate();
 			
 			return true;
 		}
