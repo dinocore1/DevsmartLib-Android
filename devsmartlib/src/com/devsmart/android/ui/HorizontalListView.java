@@ -59,6 +59,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	private OnItemClickListener mOnItemClicked;
 	private OnItemLongClickListener mOnItemLongClicked;
 	private boolean mDataChanged = false;
+	private View selectedView = null;
+	private int selectedPosition = -1;
 	
 
 	public HorizontalListView(Context context, AttributeSet attrs) {
@@ -119,8 +121,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 
 	@Override
 	public View getSelectedView() {
-		//TODO: implement
-		return null;
+		return selectedView;
 	}
 
 	@Override
@@ -141,7 +142,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 
 	@Override
 	public void setSelection(int position) {
-		//TODO: implement
+		setSelectedPosition(position);
 	}
 	
 	private void addAndMeasureChild(final View child, int viewPos) {
@@ -343,6 +344,9 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			for(int i=0;i<getChildCount();i++){
 				View child = getChildAt(i);
 				if (isEventWithinView(e, child)) {
+					
+					setSelectedPosition(i);
+					
 					if(mOnItemClicked != null){
 						mOnItemClicked.onItemClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId( mLeftViewIndex + 1 + i ));
 					}
@@ -362,6 +366,9 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			for (int i = 0; i < childCount; i++) {
 				View child = getChildAt(i);
 				if (isEventWithinView(e, child)) {
+					
+					setSelectedPosition(i);
+					
 					if (mOnItemLongClicked != null) {
 						mOnItemLongClicked.onItemLongClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
 					}
@@ -384,6 +391,30 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
         }
 	};
 
+	private void setSelectedView(View selectedView){
+		
+		this.selectedView = selectedView;
+		
+	}
+
+	@Override
+	public int getSelectedItemPosition() {
+		return selectedPosition;
+	}
+
+	private void setSelectedPosition(int selectedPosition) {
+		this.selectedPosition = selectedPosition;
+		
+		setSelectedView(getChildAt(selectedPosition));
+		
+	}
+	
+	@Override
+	public long getSelectedItemId(){
+		
+		return getSelectedView().getId();
+		
+	}
 	
 
 }
