@@ -279,7 +279,17 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			int left = mDisplayOffset;
 			for(int i=0;i<getChildCount();i++){
 				View child = getChildAt(i);
-				int childWidth = child.getMeasuredWidth();
+				
+				// We must make sure our measurements are up to date. 
+				// Layout changes within child views were not taken into account otherwise.
+				ViewGroup.LayoutParams params = child.getLayoutParams();
+			        if(params == null) {
+			          params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+			        }
+			        child.measure(MeasureSpec.makeMeasureSpec(params.width, MeasureSpec.AT_MOST),
+			                      MeasureSpec.makeMeasureSpec(params.height, MeasureSpec.AT_MOST));
+        
+        			int childWidth = child.getMeasuredWidth();
 				child.layout(left, 0, left + childWidth, child.getMeasuredHeight());
 				left += childWidth + child.getPaddingRight();
 			}
